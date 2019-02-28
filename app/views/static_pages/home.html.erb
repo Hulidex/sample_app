@@ -1,10 +1,16 @@
 <% provide(:title, "Home") %> <!-- provide rails method associate the string "Home" with the label '':title' -->
-<h1>Sample App Home</h1>
-  <img src="/app/assets/images/rails_ruby.png" alt="Ruby on rails" width="100" height="100">
+<div class="center jumbotron">
+  <h1>Welcome to the Sample App</h1>
 
-<br>
-<p>
-   This is the <strong>home page</strong> for the
-    <a href="https://www.railstutorial.org">Ruby on Rails Tutorial</a>
-    sample application
-</p>
+  <h2>
+    This is the home page for the
+    <a href="https://www.railstutorial.org/">Ruby on Rails Tutorial</a>
+    sample application.
+  </h2>
+
+  <%= link_to "Sign up now!", signup_path, class: "btn btn-lg btn-primary" %>
+</div>
+
+<%= image_tag "kitten.jpg", alt: "jatito" %>
+<%= link_to image_tag("rails.png", alt: "Rails logo"),
+    'http://rubyonrails.org/' %>
