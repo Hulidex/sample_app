@@ -27,7 +27,7 @@ Miramos la salida de dicho comando, si aparece el texto **running** en principio
 $ systemctl start mongodb.service
 ```
 
-**Opcionalmente** si queremos que mongodb se inicia cuando el sistema arranca para no tener que estar lanzándolo manualmente todo el tiempo utilizamos el comando
+**Opcionalmente** si queremos que mongodb se inicie cuando el sistema arranque, para no tener que estar lanzándolo manualmente todo el tiempo, utilizamos el comando:
 
 ```
 $ systemctl enable mongodb.service
