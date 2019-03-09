@@ -32,3 +32,11 @@ users = User.order_by(created_at: :asc).take(6)
   begin content = Faker::ChuckNorris.fact end while (content.length > 140)
   users.each {|user| user.micropost.create!(content: content)}
 end
+
+
+users = User.all
+user = users.first
+following = users[2..50]
+followers = users[3..40]
+following.each {|f| user.follow f}
+followers.each {|f| f.follow user}

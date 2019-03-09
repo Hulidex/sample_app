@@ -8,7 +8,6 @@ class User
   before_create :create_activation_digest
 
   field :name, type: String
-  #field :_id, as: :id
   field :email, type: String
   field :password_digest
   field :remember_digest, type: String
@@ -18,9 +17,14 @@ class User
   field :activated_at, type: DateTime
   field :reset_digest, type: String
   field :reset_sent_at, type: DateTime
-  
+
 
   has_many :micropost, dependent: :destroy
+  has_many :active_relationships, class_name:  "Relationship",
+                         inverse_of: :follower, dependent:   :destroy
+  has_many :pasive_relationships, class_name: "Relationship",
+                         inverse_of: :followed, dependent: :destroy
+
   
   VALID_EMAIL_REGEX = /\A[\w+\-.]+@[a-z\d\-.]+\.[a-z]+\z/
 
@@ -29,8 +33,69 @@ class User
   validates :email, presence: true, length: {maximum: 255}, format: {with: VALID_EMAIL_REGEX},
             uniqueness: {case_sensitive: false}
   has_secure_password
-  validates :password, presence: true, length: {minimum: 6}
+  validates :password, presence: true, length: {minimum: 6}, on: :create
 
+
+  def follow(user)
+    self.active_relationships.create followed_id: user.id
+  end
+
+  def unfollow(user)
+    rel_id = nil
+    success = nil
+    
+    self.active_relationships.each do |r|
+      if r.followed_id == user.id
+        rel_id = r.id
+        break
+      end
+    end
+
+    if !rel_id.nil?
+      rel = Relationship.find_by id: rel_id
+      success = rel.destroy if !!rel
+    end
+
+    !!success
+  end
+
+  def following? (user)
+
+    self.active_relationships.each do |r|
+      if r.followed_id == user.id
+       return true
+      end
+    end
+    
+    return false
+  end
+
+  def followers
+    arr = []
+    self.pasive_relationships.each {|r| arr << User.find_by(id: r.follower_id)}
+    
+    arr
+  end
+
+  def following
+    arr = []
+    self.active_relationships.each {|r| arr << User.find_by( id: r.followed_id)}
+
+    arr
+  end
+
+  def feed
+    Micropost.
+      in(:user_id => self.following.map(&:id)).
+      union.
+      in(:user_id => self.id).
+        order_by(created_at: :desc)
+  end
+
+  def refresh
+    User.find_by id: self.id
+  end
+  
   def activate
     update_attribute(:activated,    true)
     update_attribute(:activated_at, Time.zone.now)
@@ -86,9 +151,6 @@ class User
 
    # Defines a proto-feed.
   # See "Following users" for the full implementation.
-  def feed
-    Micropost.where(user_id: id)
-  end
   
   private
 
@@ -97,6 +159,9 @@ class User
       self.email = email.downcase
     end
 
+    
+
+    
     # Creates and assigns the activation token and digest.
     def create_activation_digest
       self.activation_token  = User.new_token
